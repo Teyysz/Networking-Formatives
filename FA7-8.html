@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NET::REVIEWER — Modules 7–8</title>
+<style>
+  :root{
+    --bg: #0a0e14;
+    --panel: #10161f;
+    --panel-2: #0d1218;
+    --line: #1e2833;
+    --text: #c9d4de;
+    --text-dim: #6b7a8a;
+    --cyan: #4fd6c9;
+    --amber: #e8a944;
+    --green: #4ade80;
+    --red: #f2716a;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(79,214,201,0.08), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding-bottom:120px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:relative;
+    padding:56px 24px 40px;
+    max-width:880px;
+    margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.18em;
+    color:var(--cyan);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 8px var(--cyan);
+  }
+  h1{
+    font-family:var(--mono);
+    font-size:clamp(28px,5vw,42px);
+    font-weight:600;
+    margin:0 0 12px;
+    color:#eef3f7;
+    letter-spacing:-0.01em;
+  }
+  h1 span{color:var(--text-dim);}
+  .sub{
+    color:var(--text-dim);
+    font-size:15px;
+    max-width:560px;
+  }
+  .meta-row{
+    margin-top:28px;
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .meta-row b{color:var(--text);font-weight:600;}
+
+  /* ---------- Progress bar (sticky) ---------- */
+  .progress-bar{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(10,14,20,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:12px 24px;
+  }
+  .progress-inner{
+    max-width:880px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--panel-2);
+    border-radius:3px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--cyan),#7fe8dc);
+    transition:width 0.25s ease;
+  }
+  .progress-label{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .progress-label b{color:var(--cyan);}
+
+  /* ---------- Question list ---------- */
+  main{
+    max-width:880px;
+    margin:0 auto;
+    padding:36px 24px 0;
+  }
+  .q-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:16px;
+    overflow:hidden;
+    scroll-margin-top:70px;
+    transition:border-color 0.2s ease;
+  }
+  .q-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    padding:18px 22px 6px;
+  }
+  .q-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--cyan);
+    background:rgba(79,214,201,0.08);
+    border:1px solid rgba(79,214,201,0.25);
+    padding:3px 8px;
+    border-radius:4px;
+    letter-spacing:0.05em;
+    white-space:nowrap;
+  }
+  .q-multi-tag{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--amber);
+    background:rgba(232,169,68,0.08);
+    border:1px solid rgba(232,169,68,0.28);
+    padding:3px 8px;
+    border-radius:4px;
+    letter-spacing:0.04em;
+    white-space:nowrap;
+  }
+  .q-text{
+    padding:2px 22px 16px;
+    font-size:16px;
+    color:#e7edf2;
+    font-weight:500;
+  }
+  .choices{
+    padding:0 22px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .choice{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:11px 14px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:7px;
+    cursor:pointer;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .choice:hover{border-color:#33465a;}
+  .choice input{
+    accent-color:var(--cyan);
+    margin-top:3px;
+    flex-shrink:0;
+    width:15px;height:15px;
+  }
+  .choice-letter{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    flex-shrink:0;
+    width:16px;
+  }
+  .choice-text{
+    font-size:14.5px;
+    color:var(--text);
+  }
+  .choice.selected{
+    border-color:var(--cyan);
+    background:rgba(79,214,201,0.06);
+  }
+  .choice.correct{
+    border-color:var(--green);
+    background:rgba(74,222,128,0.08);
+  }
+  .choice.correct .choice-text{color:#c9f7dc;}
+  .choice.incorrect{
+    border-color:var(--red);
+    background:rgba(242,113,106,0.08);
+  }
+  .choice.incorrect .choice-text{color:#fbd3d0;}
+  .choice.disabled{cursor:default;}
+
+  .result-tag{
+    display:none;
+    margin:0 22px 18px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    padding:6px 10px;
+    border-radius:5px;
+    width:fit-content;
+    letter-spacing:0.03em;
+  }
+  .q-card.graded .result-tag{display:block;}
+  .result-tag.ok{color:var(--green);background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);}
+  .result-tag.bad{color:var(--red);background:rgba(242,113,106,0.1);border:1px solid rgba(242,113,106,0.3);}
+  .result-tag.skip{color:var(--text-dim);background:rgba(107,122,138,0.1);border:1px solid var(--line);}
+
+  .q-card.graded{border-color:var(--line);}
+  .q-card.graded.ok{border-color:rgba(74,222,128,0.35);}
+  .q-card.graded.bad{border-color:rgba(242,113,106,0.35);}
+
+  /* ---------- Footer action bar ---------- */
+  .action-bar{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    z-index:60;
+    background:rgba(10,14,20,0.95);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:16px 24px;
+  }
+  .action-inner{
+    max-width:880px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .score-display{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  .score-display b{
+    color:var(--cyan);
+    font-size:16px;
+  }
+  .btn-row{display:flex;gap:10px;}
+  button{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.03em;
+    padding:11px 20px;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--text);
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  button:hover{border-color:#33465a;background:#151d27;}
+  #checkBtn{
+    background:var(--cyan);
+    border-color:var(--cyan);
+    color:#06120f;
+    font-weight:700;
+  }
+  #checkBtn:hover{background:#69e0d4;}
+  #resetBtn{color:var(--text-dim);}
+
+  /* ---------- Section dividers ---------- */
+  .section-divider{
+    max-width:880px;
+    margin:34px auto 18px;
+    padding:0 24px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-dim);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .section-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  @media (max-width:600px){
+    header{padding:40px 18px 28px;}
+    main{padding:28px 14px 0;}
+    .q-head, .q-text, .choices{padding-left:16px;padding-right:16px;}
+    .action-inner{justify-content:center;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">CS0013 · 3TSY2526_CS0013_TN24-7</div>
+  <h1>NET::REVIEWER<span> // Modules 7–8</span></h1>
+  <p class="sub">All 69 questions from the combined and deduplicated FA7/FA8 reviewer. Select your answers, then run the check to see your score and the correct choices.</p>
+  <div class="meta-row">
+    <div>SEGMENTS: <b>69</b></div>
+    <div>TOPICS: <b>Transport · Application · Security · Design</b></div>
+    <div>MODE: <b>Self-check</b></div>
+  </div>
+</header>
+
+<div class="progress-bar">
+  <div class="progress-inner">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label"><b id="answeredCount">0</b>/69 answered</div>
+  </div>
+</div>
+
+<main id="quizRoot"></main>
+
+<div class="action-bar">
+  <div class="action-inner">
+    <div class="score-display" id="scoreDisplay">Answer questions, then run the check.</div>
+    <div class="btn-row">
+      <button id="resetBtn">Reset</button>
+      <button id="checkBtn">Check answers</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+{q:"What is a socket?", multi:false, choices:["the combination of a source IP address and port number or a destination IP address and port number","the combination of the source and destination IP address and source and destination Ethernet address","the combination of the source and destination sequence and acknowledgment numbers","the combination of the source and destination sequence numbers and port numbers"], correct:[0]},
+{q:"Which number or set of numbers represents a socket?", multi:false, choices:["21","10.1.1.15","192.168.1.1:80","01-23-45-67-89-AB"], correct:[2]},
+{q:"Which action is performed by a client when establishing communication with a server via the use of UDP at the transport layer?", multi:false, choices:["The client sends a synchronization segment to begin the session.","The client sets the window size for the session.","The client sends an ISN to the server to start the 3-way handshake.","The client randomly selects a source port number."], correct:[3]},
+{q:"Which two services or protocols use the preferred UDP protocol for fast transmission and low overhead?", multi:true, note:"Choose two", choices:["DNS","HTTP","FTP","VoIP"], correct:[0,3]},
+{q:"What happens if part of an FTP message is not delivered to the destination?", multi:false, choices:["The FTP source host sends a query to the destination host.","The message is lost because FTP does not use a reliable delivery method.","The entire FTP message is re-sent.","The part of the FTP message that was lost is re-sent."], correct:[3]},
+{q:"What type of applications are best suited for using UDP?", multi:false, choices:["applications that need reliable delivery","applications that are sensitive to packet loss","applications that require retransmission of lost segments","applications that are sensitive to delay"], correct:[3]},
+{q:"What is the complete range of TCP and UDP well-known ports?", multi:false, choices:["0 to 255","256 - 1023","1024 - 49151","0 to 1023"], correct:[3]},
+{q:"Network congestion has resulted in the source learning of the loss of TCP segments that were sent to the destination. What is one way that the TCP protocol addresses this?", multi:false, choices:["The destination decreases the window size.","The source decreases the amount of data that it transmits before it receives an acknowledgement from the destination.","The source decreases the window size to decrease the rate of transmission from the destination.","The destination sends fewer acknowledgement messages in order to conserve bandwidth."], correct:[1]},
+{q:"Which transport layer feature is used to guarantee session establishment?", multi:false, choices:["TCP 3-way handshake","TCP port number","UDP ACK flag","UDP sequence number"], correct:[0]},
+{q:"What is the TCP mechanism used in congestion avoidance?", multi:false, choices:["sliding window","socket pair","two-way handshake","three-way handshake"], correct:[0]},
+{q:"This layer of the OSI model is concerned with the protocols that exchange data between programs running on hosts.", multi:false, choices:["physical","application","network","transport"], correct:[1]},
+{q:"What is a well-known format for videos?", multi:false, choices:["JPG","GIF","MPG","PNG"], correct:[2]},
+{q:"These three OSI layers define the same functions as the TCP/IP model application layer.", multi:true, note:"Choose three", choices:["application","session","presentation","transport"], correct:[0,1,2]},
+{q:"Which peer-to-peer application allows users to share pieces of many files with each other at the same time?", multi:false, choices:["Hybrid","Gnutella","Internet Explorer","BitTorrent"], correct:[3]},
+{q:"This is a function of the OSI session layer.", multi:false, choices:["format data for the application layer","provide an interface between applications","compress and decompress data","exchange of information to initiate dialog between peers"], correct:[3]},
+{q:"Compressing data in a way that can be decompressed by the destination device, is a function of which layer?", multi:false, choices:["Transport Layer","Network Layer","Session Layer","Presentation Layer"], correct:[3]},
+{q:"MKV, GIF, and JPG standards are associated with which OSI layer?", multi:false, choices:["presentation","application","transport","session"], correct:[0]},
+{q:"True or false? The peer-to-peer networking model requires the implementation of a dedicated server for data access.", multi:false, choices:["True","False"], correct:[1]},
+{q:"Which TCP/IP model layer is closest to the end user?", multi:false, choices:["application","transport","network access","internet"], correct:[0]},
+{q:"Why is DHCP preferred for use on large networks?", multi:false, choices:["It is a more efficient way to manage IP addresses than static address assignment.","Large networks send more requests for domain to IP address resolution than do smaller networks.","DHCP uses a reliable transport layer protocol.","It prevents sharing of files that are copyrighted."], correct:[0]},
+{q:"What are two characteristics of the application layer of the TCP/IP model?", multi:true, note:"Choose two", choices:["responsibility for physical addressing","closest to the end user","responsibility for logical addressing","the creation and maintenance of dialogue between source and destination applications"], correct:[1,3]},
+{q:"On a home network, which device is most likely to provide dynamic IP addressing to clients on the home network?", multi:false, choices:["a dedicated file server","a home router","an ISP DHCP server","a DNS server"], correct:[1]},
+{q:"Which protocol uses encryption?", multi:false, choices:["FTP","HTTPS","DHCP","DNS"], correct:[1]},
+{q:"Which application layer protocol is used to provide file-sharing and print services to Microsoft applications?", multi:false, choices:["DHCP","HTTP","SMB","SMTP"], correct:[2]},
+{q:"What part of the URL, http://www.cisco.com/index.html, represents the top-level DNS domain?", multi:false, choices:["www",".com","http","index"], correct:[1]},
+{q:"Which statement is true about FTP?", multi:false, choices:["The client can download data from or upload data to the server.","FTP is a peer-to-peer application.","FTP does not provide reliability during data transmission.","The client can choose if FTP is going to establish one or two connections with the server."], correct:[0]},
+{q:"A wireless host needs to request an IP address. What protocol would be used to process the request?", multi:false, choices:["HTTP","ICMP","DHCP","FTP"], correct:[2]},
+{q:"Which two tasks can be performed by a local DNS server?", multi:true, note:"Choose two", choices:["forwarding name resolution requests between servers","allowing data transfer between two network devices","providing IP addresses to local hosts","mapping name-to-IP addresses for internal hosts"], correct:[0,3]},
+{q:"Which two flags in the TCP header are used in a TCP three-way handshake to establish connectivity between two network devices?", multi:true, note:"Choose two", choices:["PSH","ACK","SYN","FIN"], correct:[1,2]},
+{q:"What is a responsibility of transport layer protocols?", multi:false, choices:["translating private IP addresses to public IP addresses","providing network access","determining the best path to forward a packet","tracking individual conversations"], correct:[3]},
+{q:"What is the purpose of using a source port number in a TCP communication?", multi:false, choices:["to assemble the segments that arrived out of order","to notify the remote device that the conversation is over","to inquire for a nonreceived segment","to keep track of multiple conversations between devices"], correct:[3]},
+{q:"How does a networked server manage requests from multiple clients for different services?", multi:false, choices:["Each request is assigned source and destination port numbers.","Each request is tracked through the physical address of the client.","The server uses IP addresses to identify different services.","The server sends all requests through a default gateway."], correct:[0]},
+{q:"What is a well-known graphic-image format?", multi:false, choices:["MOV","GIF","MPG","MKV"], correct:[1]},
+{q:"What is a well-known format for videos?", multi:false, choices:["JPG","GIF","PNG","MOV"], correct:[3]},
+{q:"Formatting, or presenting, data at the source device into a compatible format for receipt by the destination device, is a function of which layer?", multi:false, choices:["Transport Layer","Network Layer","Presentation Layer","Session Layer"], correct:[2]},
+{q:"Which of the following is a feature of the Gnutella protocol?", multi:false, choices:["Users can share pieces of files with other users.","Users can share whole files with other users.","None of the above","Users can access an index server to get the location of resources shared by other users."], correct:[1]},
+{q:"True or false? In a peer-to-peer network environment every peer can function as both a client and a server.", multi:false, choices:["True","False"], correct:[0]},
+{q:"What is a well-known format for videos?", multi:false, choices:["MKV","GIF","PNG","JPG"], correct:[0]},
+{q:"What is a well-known graphic-image format?", multi:false, choices:["MKV","JPG","MPG","MOV"], correct:[1]},
+{q:"An author is uploading one chapter document from a personal computer to a file server of a book publisher. What role is the personal computer assuming in this network model?", multi:false, choices:["slave","master","client","server"], correct:[2]},
+{q:"Which protocol can be used to transfer messages from an email server to an email client?", multi:false, choices:["POP3","SMTP","SNMP","HTTP"], correct:[0]},
+{q:"Which three protocols or standards are used at the application layer of the TCP/IP model?", multi:true, note:"Choose three", choices:["HTTP","GIF","TCP","MPEG"], correct:[0,1,3]},
+{q:"What message type is used by an HTTP client to request data from a web server?", multi:false, choices:["ACK","POST","PUT","GET"], correct:[3]},
+{q:"What is the objective of a network reconnaissance attack?", multi:false, choices:["disabling network systems or services","denying access to resources by legitimate users","unauthorized manipulation of data","discovery and mapping of systems"], correct:[3]},
+{q:"What is one of the most effective security tools available for protecting users from external threats?", multi:false, choices:["patch servers","password encryption techniques","router that run AAA services","firewalls"], correct:[3]},
+{q:"A network administrator establishes a connection to a switch via SSH. What characteristic uniquely describes the SSH connection?", multi:false, choices:["on-site access to a switch through the use of a directly connected PC and a console cable","remote access to the switch through the use of a telephone dialup connection","remote access to a switch where data is encrypted during the session","out-of-band access to a switch through the use of a virtual terminal with password authentication"], correct:[2]},
+{q:"What three configuration steps must be performed to implement SSH access to a router?", multi:true, note:"Choose three", choices:["an IP domain name","a user account","a unique hostname","a password on the console line"], correct:[0,1,2]},
+{q:"What type of attack may involve the use of tools such as nslookup and fping?", multi:false, choices:["worm attack","denial of service attack","access attack","reconnaissance attack"], correct:[3]},
+{q:"Which command will block login attempts on RouterA for a period of 30 seconds if there are 2 failed login attempts within 10 seconds?", multi:false, choices:["RouterA(config)# login block-for 2 attempts 30 within 10","RouterA(config)# login block-for 30 attempts 10 within 2","RouterA(config)# login block-for 10 attempts 2 within 30","RouterA(config)# login block-for 30 attempts 2 within 10"], correct:[3]},
+{q:"Which type of network threat is intended to prevent authorized users from accessing resources?", multi:false, choices:["access attacks","trust exploitation","DoS attacks","reconnaissance attacks"], correct:[2]},
+{q:"For security reasons a network administrator needs to ensure that local computers cannot ping each other. Which settings can accomplish this task?", multi:false, choices:["smartcard settings","MAC address settings","firewall settings","file system settings"], correct:[2]},
+{q:"Which component is designed to protect against unauthorized communications to and from a computer?", multi:false, choices:["security center","firewall","port scanner","antimalware"], correct:[1]},
+{q:"Which three services are provided by the AAA framework?", multi:true, note:"Choose three", choices:["automation","accounting","authorization","authentication"], correct:[1,2,3]},
+{q:"A network technician suspects that a particular network connection between two Cisco switches is having a duplex mismatch. Which command would the technician use to see the Layer 1 and Layer 2 details of a switch port?", multi:false, choices:["show mac-address-table","show ip interface brief","show running-config","show interfaces"], correct:[3]},
+{q:"A user is unable to reach the website when typing http://www.cisco.com in a web browser, but can reach the same site by typing http://72.163.4.161. What is the issue?", multi:false, choices:["DHCP","default gateway","DNS","TCP/IP protocol stack"], correct:[2]},
+{q:"A newly hired network technician is given the task of ordering new hardware for a small business with a large growth forecast. Which primary factor should the technician be concerned with when choosing the new devices?", multi:false, choices:["redundant devices","devices with a fixed number and type of interfaces","devices that have support for network monitoring","devices with support for modularity"], correct:[3]},
+{q:"A network technician is investigating network connectivity from a PC to a remote host with the address 10.1.1.5. Which command, when issued on a Windows PC, will display the path to the remote host?", multi:false, choices:["trace 10.1.1.5","tracert 10.1.1.5","ping 10.1.1.5","traceroute 10.1.1.5"], correct:[1]},
+{q:"When should an administrator establish a network baseline?", multi:false, choices:["when there is a sudden drop in traffic","at regular intervals over a period of time","at the lowest point of traffic in the network","when the traffic is at peak in the network"], correct:[1]},
+{q:"What type of traffic would most likely have the highest priority through the network?", multi:false, choices:["FTP","SNMP","voice","instant messaging"], correct:[2]},
+{q:"Which network design consideration would be more important to a large corporation than to small business?", multi:false, choices:["firewall","redundancy","Internet router","low port density switch"], correct:[1]},
+{q:"Which statement is true about CDP on a Cisco device?", multi:false, choices:["The show cdp neighbor detail command will reveal the IP address of a neighbor only if there is Layer 3 connectivity.","CDP can be disabled globally or on a specific interface.","To disable CDP globally, the no cdp enable command in interface configuration mode must be used.","Because it runs at the data link layer, the CDP protocol can only be implemented in switches."], correct:[1]},
+{q:"Which two traffic types require delay sensitive delivery?", multi:true, note:"Choose two", choices:["voice","video","web","email"], correct:[0,1]},
+{q:"Which element of scaling a network involves identifying the physical and logical topologies?", multi:false, choices:["cost analysis","traffic analysis","device inventory","network documentation"], correct:[3]},
+{q:"Which malicious code attack is self-contained and tries to exploit a specific vulnerability in a system being attacked?", multi:false, choices:["virus","social engineering","Trojan horse","worm"], correct:[3]},
+{q:"Which benefit does SSH offer over Telnet for remotely managing a router?", multi:false, choices:["authorization","encryption","connections via multiple VTY lines","TCP usage"], correct:[1]},
+{q:"What does the term vulnerability mean?", multi:false, choices:["a weakness that makes a target susceptible to an attack","a computer that contains sensitive information","a known target or victim machine","a method of attack to exploit a target"], correct:[0]},
+{q:"What is the purpose of the network security accounting function?", multi:false, choices:["to keep track of the actions of a user","to provide challenge and response questions","to determine which resources a user can access","to require users to prove who they are"], correct:[0]},
+{q:"A small company has only one router as the exit point to its ISP. Which solution could be adopted to maintain connectivity if the router itself, or its connection to the ISP, fails?", multi:false, choices:["Add more interfaces to the router that is connected to the internal network.","Purchase a second least-cost link from another ISP to connect to this router.","Have a second router that is connected to another ISP.","Activate another router interface that is connected to the ISP, so the traffic can flow through it."], correct:[2]},
+{q:"What factor should be considered in the design of a small network when devices are being chosen?", multi:false, choices:["ISP","traffic analysis","redundancy","cost of devices"], correct:[3]}
+];
+
+const LETTERS = ["A","B","C","D"];
+const root = document.getElementById("quizRoot");
+const userAnswers = QUESTIONS.map(() => new Set());
+let graded = false;
+
+function render(){
+  root.innerHTML = "";
+  QUESTIONS.forEach((item, qi) => {
+    const card = document.createElement("div");
+    card.className = "q-card";
+    card.id = "q" + qi;
+
+    const head = document.createElement("div");
+    head.className = "q-head";
+    const tag = document.createElement("span");
+    tag.className = "q-tag";
+    tag.textContent = "SEG " + String(qi+1).padStart(3,"0");
+    head.appendChild(tag);
+    if(item.multi){
+      const mtag = document.createElement("span");
+      mtag.className = "q-multi-tag";
+      mtag.textContent = item.note.toUpperCase();
+      head.appendChild(mtag);
+    }
+    card.appendChild(head);
+
+    const qtext = document.createElement("div");
+    qtext.className = "q-text";
+    qtext.textContent = item.q;
+    card.appendChild(qtext);
+
+    const choicesWrap = document.createElement("div");
+    choicesWrap.className = "choices";
+
+    item.choices.forEach((choiceText, ci) => {
+      const label = document.createElement("label");
+      label.className = "choice";
+      label.dataset.qi = qi;
+      label.dataset.ci = ci;
+
+      const input = document.createElement("input");
+      input.type = item.multi ? "checkbox" : "radio";
+      input.name = "q" + qi;
+      input.value = ci;
+      input.addEventListener("change", () => onSelect(qi, ci, item.multi, input));
+
+      const letter = document.createElement("span");
+      letter.className = "choice-letter";
+      letter.textContent = LETTERS[ci] + ".";
+
+      const ctext = document.createElement("span");
+      ctext.className = "choice-text";
+      ctext.textContent = choiceText;
+
+      label.appendChild(input);
+      label.appendChild(letter);
+      label.appendChild(ctext);
+      choicesWrap.appendChild(label);
+    });
+
+    card.appendChild(choicesWrap);
+
+    const resultTag = document.createElement("div");
+    resultTag.className = "result-tag";
+    resultTag.id = "result" + qi;
+    card.appendChild(resultTag);
+
+    root.appendChild(card);
+  });
+  updateProgress();
+}
+
+function onSelect(qi, ci, isMulti, input){
+  const set = userAnswers[qi];
+  if(isMulti){
+    if(input.checked) set.add(ci); else set.delete(ci);
+  } else {
+    set.clear();
+    set.add(ci);
+  }
+  document.querySelectorAll('.choice[data-qi="'+qi+'"]').forEach(el => {
+    const c = parseInt(el.dataset.ci);
+    el.classList.toggle("selected", set.has(c));
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const answered = userAnswers.filter(s => s.size > 0).length;
+  document.getElementById("answeredCount").textContent = answered;
+  document.getElementById("progressFill").style.width = (answered/QUESTIONS.length*100) + "%";
+}
+
+function setsEqual(a, b){
+  if(a.size !== b.size) return false;
+  for(const x of a) if(!b.has(x)) return false;
+  return true;
+}
+
+function checkAnswers(){
+  graded = true;
+  let score = 0;
+  QUESTIONS.forEach((item, qi) => {
+    const correctSet = new Set(item.correct);
+    const chosenSet = userAnswers[qi];
+    const isCorrect = chosenSet.size > 0 && setsEqual(correctSet, chosenSet);
+    if(isCorrect) score++;
+
+    const card = document.getElementById("q" + qi);
+    card.classList.add("graded");
+    card.classList.remove("ok","bad");
+    card.classList.add(isCorrect ? "ok" : "bad");
+
+    document.querySelectorAll('.choice[data-qi="'+qi+'"]').forEach(el => {
+      const ci = parseInt(el.dataset.ci);
+      const input = el.querySelector("input");
+      input.disabled = true;
+      el.classList.add("disabled");
+      el.classList.remove("correct","incorrect");
+      if(correctSet.has(ci)) el.classList.add("correct");
+      else if(chosenSet.has(ci)) el.classList.add("incorrect");
+    });
+
+    const resultTag = document.getElementById("result" + qi);
+    if(chosenSet.size === 0){
+      resultTag.className = "result-tag skip";
+      resultTag.textContent = "SKIPPED — correct: " + item.correct.map(c => LETTERS[c]).join(", ");
+    } else if(isCorrect){
+      resultTag.className = "result-tag ok";
+      resultTag.textContent = "CORRECT";
+    } else {
+      resultTag.className = "result-tag bad";
+      resultTag.textContent = "INCORRECT — correct: " + item.correct.map(c => LETTERS[c]).join(", ");
+    }
+  });
+
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  document.getElementById("scoreDisplay").innerHTML =
+    'Score: <b>' + score + ' / ' + QUESTIONS.length + '</b> &nbsp;(' + pct + '%)';
+  document.getElementById("checkBtn").textContent = "Re-check";
+  document.querySelector(".q-card.bad, .q-card.ok")?.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function resetAll(){
+  graded = false;
+  userAnswers.forEach(s => s.clear());
+  document.getElementById("checkBtn").textContent = "Check answers";
+  document.getElementById("scoreDisplay").textContent = "Answer questions, then run the check.";
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+document.getElementById("resetBtn").addEventListener("click", resetAll);
+
+render();
+</script>
+</body>
+</html>
