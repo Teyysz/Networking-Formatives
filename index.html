@@ -70,6 +70,13 @@
   .navBtn.current{outline:2px solid var(--accent); outline-offset:1px;}
   .navBtn.correct{background:rgba(57,217,138,0.18); color:var(--accent); border-color:var(--accent);}
   .navBtn.incorrect{background:rgba(255,107,107,0.15); color:var(--bad); border-color:var(--bad);}
+  .navBtn.reviewed{background:rgba(240,182,76,0.14); color:var(--amber); border-color:var(--amber);}
+
+  .settings{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:9px;}
+  .setting{display:flex;justify-content:space-between;gap:12px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--dim);}
+  .setting input{accent-color:var(--accent);}
+  .ghostBtn{background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:7px;padding:8px;font-family:var(--mono);cursor:pointer;}
+  .ghostBtn:hover{color:var(--text);border-color:var(--accent);}
 
   #finishBtn{
     margin-top:auto; background:var(--accent); color:#0a1510; border:none;
@@ -110,6 +117,12 @@
   #feedbackBox{margin-top:16px; padding:12px 14px; border-radius:8px; font-family:var(--mono); font-size:13px; display:none;}
   #feedbackBox.ok{display:block; background:rgba(57,217,138,0.1); border:1px solid var(--accent-dim); color:var(--accent);}
   #feedbackBox.bad{display:block; background:rgba(255,107,107,0.08); border:1px solid var(--bad-dim); color:var(--bad);}
+  #feedbackBox.review{display:block;background:rgba(240,182,76,.08);border:1px solid rgba(240,182,76,.35);color:var(--amber);}
+  .explanation{display:block;color:var(--text);margin-top:8px;line-height:1.55;font-family:var(--sans);}
+  .essayBox{width:100%;min-height:260px;resize:vertical;background:#0a0f16;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:14px;font:14px/1.6 var(--sans);}
+  .essayBox:focus{outline:2px solid var(--accent-dim);border-color:var(--accent);}
+  .wordCount{font:12px var(--mono);color:var(--dim);margin:7px 0 12px;}
+  .modelAnswer{white-space:pre-wrap;color:var(--text);line-height:1.6;margin-top:8px;font-family:var(--sans);}
 
   .navRow{display:flex; justify-content:space-between; margin-top:28px; gap:12px;}
   .navRow button{
@@ -118,6 +131,8 @@
   }
   .navRow button:hover{border-color:var(--accent);}
   .navRow button:disabled{opacity:.35; cursor:not-allowed;}
+  #submitBtn{background:var(--accent);color:#0a1510;border-color:var(--accent);font-weight:700;}
+  #tryAgainBtn{border-color:var(--amber);color:var(--amber);display:none;}
 
   #resultsScreen{display:none;}
   .scoreCard{
@@ -170,6 +185,12 @@
     <div id="progressBarOuter"><div id="progressBarInner"></div></div>
   </div>
 
+  <div class="settings">
+    <label class="setting"><span>Shuffle questions</span><input id="shuffleQuestions" type="checkbox"></label>
+    <label class="setting"><span>Shuffle choices</span><input id="shuffleChoices" type="checkbox"></label>
+    <button class="ghostBtn" id="resetProgressBtn">Reset saved progress</button>
+  </div>
+
   <div id="navGrid"></div>
 
   <button id="finishBtn">Grade Quiz ▸</button>
@@ -191,7 +212,11 @@
 
     <div class="navRow">
       <button id="prevBtn">◂ Previous</button>
-      <button id="nextBtn">Next ▸</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <button id="tryAgainBtn">Try Again</button>
+        <button id="submitBtn">Submit Answer</button>
+        <button id="nextBtn">Next ▸</button>
+      </div>
     </div>
   </div>
 
@@ -213,6 +238,7 @@
 /* =========================================================
    QUESTION DATA — multiple quizzes
 ========================================================= */
+const mc=(q,stem,choices,correct,explanation)=>({q,type:"single",stem,opts:choices.map((v,i)=>[String.fromCharCode(65+i),v]),ans:String.fromCharCode(65+correct),explanation});
 const QUIZZES = {
 
 "1718951": {
@@ -357,6 +383,73 @@ const QUIZZES = {
  code:"[1,2,4,5] + [3,6]",
  opts:[["A","[12]+[9]"],["B","[21]"],["C","[1,2,4,5,3,6]"],["D","[1,2,3,4,5,6]"]], ans:"C"}
   ]
+},
+
+"1719018": {
+  title: "Quiz 1719018 — Development, APIs & HTTP",
+  questions: [
+mc(1,"Which loop iterates over sequences?",["for","while","break","if"],0,"A for loop visits each item in a sequence such as a list, tuple, string, or range."),
+mc(2,"Which function opens files in Python?",["get()","read()","open()","load()"],2,"Python's built-in open() function returns a file object."),
+mc(3,"Which practice improves readability?",["Meaningful variable names","Inline logic everywhere","Long functions","Random variable names"],0,"Descriptive names communicate intent and make code easier to maintain."),
+mc(4,"Continuous Integration (CI) focuses on:",["Frequently merging code changes","Replacing Agile","Writing documentation","Final deployment"],0,"CI integrates small changes frequently and normally validates them with automated builds and tests."),
+mc(5,"Which testing ensures old features still work after changes?",["Regression Testing","System Testing","Load Testing","Smoke Testing"],0,"Regression testing checks that changes have not broken previously working behavior."),
+mc(6,"In MVC, which part interacts with the user?",["Controller","API","View","Model"],2,"The View presents information and interface elements to the user."),
+mc(7,"Which Git command saves changes permanently to history?",["git commit","git add","git branch","git log"],0,"git commit records the staged snapshot in repository history."),
+mc(8,"Which statement exits a loop early?",["stop","continue","break","return"],2,"break immediately terminates the nearest enclosing loop."),
+mc(9,"Which Python structure is immutable?",["Set","Tuple","List","Dictionary"],1,"A tuple cannot have its elements added, removed, or replaced after creation."),
+mc(10,"Which testing ensures modules work together correctly?",["Stress Testing","Unit Testing","Regression Testing","Integration Testing"],3,"Integration testing checks interactions and interfaces between combined modules."),
+mc(11,"Which testing checks system behavior under heavy load?",["Regression Testing","Acceptance Testing","Unit Testing","Stress Testing"],3,"Stress testing pushes a system beyond normal demand to observe stability and limits."),
+mc(12,"Which format uses tags to store data?",["YAML","XML","JSON","CSV"],1,"XML represents structured data with opening and closing tags."),
+mc(13,"Which format is lightweight and commonly used in APIs?",["HTML","YAML","JSON","XML"],2,"JSON is compact, language-independent, and widely used for API payloads."),
+mc(14,"Which keyword is used for decision-making?",["for","while","else","if"],3,"if evaluates a condition and selects which code should run."),
+mc(15,"Which Git command initializes a repository?",["git push","git status","git init","git clone"],2,"git init creates the metadata for a Git repository in the current directory."),
+mc(16,"Which format is indentation-sensitive?",["CSV","YAML","JSON","XML"],1,"YAML uses indentation to express nesting and structure."),
+mc(17,"Which SDLC phase involves fixing bugs and improving software post-release?",["Design","Requirements","Maintenance","Testing"],2,"Maintenance covers post-release corrections, adaptation, and improvements."),
+mc(18,"Which Git command switches branches?",["git merge","git push","git checkout","git branch"],2,"git checkout can switch branches; modern Git also provides git switch."),
+mc(19,"Which Git command copies a remote repository?",["git pull","git clone","git init","git checkout"],1,"git clone creates a local copy of an existing repository."),
+mc(20,"Which is the main advantage of YAML?",["Human readability","Machine efficiency","Complexity","Binary storage"],0,"YAML emphasizes a concise, human-readable representation of structured data."),
+mc(21,"Which Git command stages changes for commit?",["git add","git commit","git branch","git push"],0,"git add places selected changes in the staging area."),
+mc(22,"Which design pattern notifies objects when state changes?",["Observer","Factory","Singleton","Adapter"],0,"The Observer pattern publishes state changes to subscribed observers."),
+mc(23,"Which principle says “Keep It Simple, Stupid”?",["SOLID","DRY","Agile","KISS"],3,"KISS encourages simple designs and avoids unnecessary complexity."),
+mc(24,"JSON arrays are represented with:",["–","{}","[]","<>"],2,"JSON encloses array values in square brackets."),
+mc(25,"Which principle says “Don’t Repeat Yourself”?",["Agile","DRY","SOLID","KISS"],1,"DRY reduces duplicated knowledge or logic by keeping one authoritative representation."),
+mc(26,"In an HTTP header, information is formatted as:",["Data|Type","Value-Name","Name:Value","Key=Value"],2,"An HTTP header field uses a field name, a colon, and its value."),
+mc(27,"Which HTTP method is used to update an existing resource?",["GET","POST","PATCH","PUT"],3,"PUT commonly replaces or updates the representation at a known resource URI."),
+mc(28,"Which authentication mechanism transmits Base64 encoded credentials?",["Bearer Token","Basic Authentication","OAuth","API Key"],1,"HTTP Basic authentication encodes the username and password with Base64; encoding is not encryption."),
+mc(29,"Which HTTP status code means ‘Unauthorized’?",["401","400","403","404"],0,"401 indicates that valid authentication credentials are missing or invalid."),
+mc(30,"Which part of a URI represents the host and port?",["Path","Scheme","Authority","Query"],2,"The authority component contains the host and, when specified, the port."),
+mc(31,"Which error category represents client-side mistakes?",["4xx","2xx","5xx","1xx"],0,"HTTP 4xx responses identify errors associated with the client request."),
+mc(32,"What is the primary purpose of an API?",["To allow software to communicate with hardware","To allow one piece of software to communicate with another","To replace operating systems","To configure network devices"],1,"An API defines how software components request services and exchange data."),
+mc(33,"Which rate limit algorithm uses tokens consumed per request?",["Token Bucket","Leaky Bucket","Sliding Window Counter","Fixed Window Counter"],0,"A token bucket grants requests while tokens are available and replenishes tokens over time."),
+mc(34,"Which error category represents server-side mistakes?",["4xx","5xx","2xx","1xx"],1,"HTTP 5xx responses indicate that the server failed to fulfill a valid request."),
+mc(35,"Which HTTP method is typically used to create a new resource?",["DELETE","PUT","GET","POST"],3,"POST commonly submits data to a collection so the server can create a resource."),
+mc(36,"Which HTTP status code means ‘Too Many Requests’?",["500","503","403","429"],3,"429 reports that the client exceeded an allowed request rate."),
+mc(37,"Which status code means ‘Internal Server Error’?",["403","404","200","500"],3,"500 is the generic status for an unexpected server-side failure."),
+mc(38,"What does the HTTP header ‘X-RateLimit-Remaining’ represent?",["Reset time","Remaining requests allowed","Max requests per time unit","Total connections"],1,"It commonly reports how many requests remain in the current rate-limit window."),
+mc(39,"Which rate limit algorithm resets requests per fixed time window?",["Sliding Window Counter","Token Bucket","Leaky Bucket","Fixed Window Counter"],3,"A fixed-window counter starts a new count at each fixed interval boundary."),
+mc(40,"Authentication proves:",["Server availability","Data encryption","Permissions of the user","Identity of the user"],3,"Authentication verifies identity; authorization determines permissions."),
+mc(41,"RPC stands for:",["Random Protocol Communication","Remote Processing Call","Resource Protocol Control","Remote Procedure Call"],3,"RPC lets software invoke a procedure on another machine or process."),
+mc(42,"REST was authored by:",["Tim Berners-Lee","Linus Torvalds","Roy Thomas Fielding","Dennis Ritchie"],2,"Roy Fielding described REST in his 2000 doctoral dissertation."),
+mc(43,"Which protocol is widely used for combining authentication and authorization?",["Bearer Token","OAuth","API Key","Basic Authentication"],1,"OAuth is an authorization framework often used alongside an identity layer such as OpenID Connect."),
+mc(44,"Which part of a URI specifies the protocol (http/https)?",["Query","Scheme","Authority","Path"],1,"The scheme appears before the colon, as in https:."),
+mc(45,"Which part of a URI represents the location of the resource?",["Authority","Scheme","Path","Query"],2,"The path identifies a resource within the authority's hierarchy."),
+mc(46,"Which of these is NOT a characteristic of SOAP?",["Independent","Extensible","Stateless","Neutral"],2,"In the course framing, SOAP is described as extensible, neutral, and independent; statelessness is a REST constraint."),
+mc(47,"Which of the following is NOT one of the six REST principles?",["Stateless","Multi-threading","Client-Server","Cache"],1,"Multi-threading is an implementation technique, not a REST architectural constraint."),
+mc(48,"An API Rate Limit is primarily used to:",["Increase server load","Encrypt traffic","Prevent overload and DoS attacks","Allow unlimited access"],2,"Rate limits protect capacity and reduce abusive or accidental request floods."),
+mc(49,"Which rate limit algorithm uses a queue and processes at a fixed rate?",["Leaky Bucket","Fixed Window Counter","Token Bucket","Sliding Window Counter"],0,"The leaky bucket drains queued requests at a controlled, fixed rate."),
+mc(50,"Which authentication method uses unique alphanumeric keys assigned to users?",["Basic Authentication","Bearer Token","API Key","Certificate"],2,"An API key is a unique string issued to identify or authenticate a caller."),
+{q:51,type:"essay",stem:"The Software Development Life Cycle (SDLC) consists of Requirements and Analysis, Design, Implementation, Testing, Deployment, and Maintenance. Compare developing software to a real-life activity. Explain how all six phases correspond to your chosen activity, why each matters, and how skipping a phase could affect the outcome.\n\nRequirements: minimum 200 words; clearly identify the activity; explain all six phases; use specific examples.",rubric:"Accuracy of SDLC concepts (4) • Creativity and relevance (3) • Clarity (2) • Grammar and organization (1)",modelAnswer:`Developing software is similar to preparing a departmental examination. During Requirements and Analysis, professors identify the course outcomes, required topics, student needs, exam duration, and school policies. If they skip this phase, the exam may test material that was never taught or fail to measure the intended skills.
+
+During Design, the department creates an exam blueprint. It decides how many questions belong to each topic, which question types to use, how points are distributed, and how much time students need. Without a design, the exam may be unbalanced or confusing.
+
+Implementation is when professors write the actual questions, instructions, answer key, and scoring rubric, then assemble them into the final paper or online form. Skipping careful implementation can introduce missing choices, unclear instructions, or incorrect answers.
+
+Testing happens when faculty members proofread and answer the exam themselves. They verify the key, check the difficulty and timing, and remove ambiguous or out-of-scope questions. Without testing, errors may reach every student.
+
+Deployment occurs when the approved exam is scheduled, secured, and distributed by the assigned proctors. Poor deployment could expose questions early, send students to the wrong room, or delay the examination.
+
+Maintenance takes place during and after the exam. Faculty clarify typos, handle unreadable pages, decide whether a flawed item should become a bonus, and record improvements for the next examination. Every phase protects fairness and quality; skipping even one can weaken the final assessment.`}
+  ]
 }
 
 };
@@ -364,246 +457,65 @@ const QUIZZES = {
 /* =========================================================
    APP LOGIC
 ========================================================= */
-let activeQuizId = Object.keys(QUIZZES)[0];
-let Q = QUIZZES[activeQuizId].questions;
-let TOTAL = Q.length;
-let current = 0;
-let answers = {};
-let graded = false;
-let gradeResults = {};
+let activeQuizId = localStorage.getItem('networking_active_quiz') || Object.keys(QUIZZES)[0];
+let Q=[], TOTAL=0, current=0, records={}, order=[], optionOrders={};
+const $=id=>document.getElementById(id);
+const navGrid=$('navGrid'), progressText=$('progressText'), progressBarInner=$('progressBarInner');
+const quizSelect=$('quizSelect'), brandTitle=$('brandTitle'), loadedCount=$('loadedCount');
+const shuffleQuestions=$('shuffleQuestions'), shuffleChoices=$('shuffleChoices');
+const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+const stateKey=()=>`networking_reviewer_v2_${activeQuizId}`;
 
-const navGrid = document.getElementById('navGrid');
-const progressText = document.getElementById('progressText');
-const progressBarInner = document.getElementById('progressBarInner');
-const quizSelect = document.getElementById('quizSelect');
-const brandTitle = document.getElementById('brandTitle');
-const loadedCount = document.getElementById('loadedCount');
+function save(){localStorage.setItem(stateKey(),JSON.stringify({records,order,optionOrders,current,shuffleQ:shuffleQuestions.checked,shuffleC:shuffleChoices.checked}));localStorage.setItem('networking_active_quiz',activeQuizId);}
+function freshState(){records={};order=Q.map((_,i)=>i);optionOrders={};if(shuffleQuestions.checked)order=shuffle(order);Q.forEach(q=>{optionOrders[q.q]=q.opts?(shuffleChoices.checked?shuffle(q.opts.map(x=>x[0])):q.opts.map(x=>x[0])):[];});current=0;save();}
+function restore(){try{const s=JSON.parse(localStorage.getItem(stateKey()));if(!s||!Array.isArray(s.order)||s.order.length!==Q.length)return freshState();records=s.records||{};order=s.order;optionOrders=s.optionOrders||{};current=Math.min(s.current||0,TOTAL-1);shuffleQuestions.checked=!!s.shuffleQ;shuffleChoices.checked=!!s.shuffleC;}catch(e){freshState();}}
 
-function populateQuizSelect(){
-  quizSelect.innerHTML = '';
-  Object.keys(QUIZZES).forEach(id=>{
-    const o = document.createElement('option');
-    o.value = id; o.textContent = QUIZZES[id].title;
-    quizSelect.appendChild(o);
-  });
-  quizSelect.value = activeQuizId;
-}
-populateQuizSelect();
+Object.entries(QUIZZES).forEach(([id,set])=>{const o=document.createElement('option');o.value=id;o.textContent=set.title;quizSelect.appendChild(o);});
+quizSelect.onchange=()=>loadQuiz(quizSelect.value);
+shuffleQuestions.onchange=()=>{freshState();buildNav();render();};
+shuffleChoices.onchange=()=>{freshState();buildNav();render();};
+$('resetProgressBtn').onclick=()=>{if(confirm('Reset answers and saved progress for this quiz?')){localStorage.removeItem(stateKey());freshState();buildNav();render();}};
 
-quizSelect.onchange = ()=>{
-  loadQuiz(quizSelect.value);
-};
-
-function loadQuiz(id){
-  activeQuizId = id;
-  Q = QUIZZES[id].questions;
-  TOTAL = Q.length;
-  current = 0;
-  answers = {};
-  graded = false;
-  gradeResults = {};
-  brandTitle.textContent = QUIZZES[id].title;
-  loadedCount.textContent = TOTAL;
-  document.getElementById('resultsScreen').style.display='none';
-  document.getElementById('quizScreen').style.display='block';
-  document.getElementById('sidebar').style.display='flex';
-  buildNav();
-  render();
-}
-
-function buildNav(){
-  navGrid.innerHTML = '';
-  Q.forEach((qq,i)=>{
-    const b = document.createElement('div');
-    b.className = 'navBtn';
-    b.textContent = qq.q;
-    b.onclick = ()=>{ current = i; render(); };
-    navGrid.appendChild(b);
-  });
-}
-
-function isAnswered(q){
-  const a = answers[q.q];
-  if(a===undefined) return false;
-  if(q.type==='single') return !!a;
-  if(q.type==='multi') return a && a.length>0;
-  return false;
-}
-
-function updateProgress(){
-  const answeredCount = Q.filter(isAnswered).length;
-  progressText.textContent = answeredCount + ' / ' + TOTAL;
-  progressBarInner.style.width = (answeredCount/TOTAL*100) + '%';
-  const btns = navGrid.children;
-  Q.forEach((qq,i)=>{
-    btns[i].classList.toggle('answered', isAnswered(qq));
-    btns[i].classList.toggle('current', i===current);
-  });
-}
-
-function typeLabel(t){
-  return {single:'SINGLE CHOICE', multi:'MULTI SELECT'}[t];
-}
+function loadQuiz(id){activeQuizId=id;Q=QUIZZES[id].questions;TOTAL=Q.length;quizSelect.value=id;brandTitle.textContent=QUIZZES[id].title;loadedCount.textContent=TOTAL;$('resultsScreen').style.display='none';$('quizScreen').style.display='block';$('sidebar').style.display='flex';restore();buildNav();render();}
+function shownQ(){return Q[order[current]];}
+function rec(q){return records[q.q]||(records[q.q]={value:q.type==='multi'?[]:'',submitted:false,correct:null,attempts:0});}
+function buildNav(){navGrid.innerHTML='';order.forEach((qi,i)=>{const q=Q[qi],b=document.createElement('button');b.className='navBtn';b.textContent=q.q;b.onclick=()=>{current=i;save();render();};navGrid.appendChild(b);});}
+function isAnswered(q){const r=records[q.q];return !!r&&(q.type==='multi'?r.value.length>0:String(r.value||'').trim().length>0);}
+function updateProgress(){const done=Q.filter(q=>records[q.q]?.submitted).length;progressText.textContent=done+' / '+TOTAL;progressBarInner.style.width=(done/TOTAL*100)+'%';[...navGrid.children].forEach((b,i)=>{const q=Q[order[i]],r=records[q.q];b.className='navBtn';if(isAnswered(q))b.classList.add('answered');if(r?.submitted&&r.correct===true)b.classList.add('correct');if(r?.submitted&&r.correct===false)b.classList.add('incorrect');if(r?.submitted&&q.type==='essay')b.classList.add('reviewed');if(i===current)b.classList.add('current');});}
+function typeLabel(t){return {single:'SINGLE CHOICE',multi:'MULTI SELECT',essay:'WRITTEN RESPONSE'}[t];}
+function optsFor(q){const keys=optionOrders[q.q]||q.opts.map(x=>x[0]);return keys.map(k=>q.opts.find(x=>x[0]===k));}
 
 function render(){
-  const q = Q[current];
-  document.getElementById('qCounter').textContent = 'Question ' + q.q + ' / ' + TOTAL;
-  document.getElementById('qTypeTag').textContent = typeLabel(q.type);
-  document.getElementById('qStem').textContent = q.stem;
-
-  const codeEl = document.getElementById('qCode');
-  if(q.code){ codeEl.style.display='block'; codeEl.textContent = q.code; }
-  else{ codeEl.style.display='none'; }
-
-  const flagEl = document.getElementById('qFlag');
-  if(q.flag){ flagEl.style.display='block'; flagEl.textContent = '⚠ ' + q.flag; }
-  else{ flagEl.style.display='none'; }
-
-  const body = document.getElementById('qBody');
-  body.innerHTML='';
-
-  if(q.type==='single'){
-    const wrap = document.createElement('div'); wrap.className='choiceList';
-    q.opts.forEach(([k,v])=>{
-      const div = document.createElement('label'); div.className='choice';
-      div.innerHTML = '<input type="radio" name="single'+q.q+'"><span class="txt"></span>';
-      div.querySelector('.txt').textContent = v;
-      const input = div.querySelector('input');
-      input.checked = answers[q.q]===k;
-      if(answers[q.q]===k) div.classList.add('selected');
-      input.onchange = ()=>{ answers[q.q]=k; updateProgress(); render(); };
-      wrap.appendChild(div);
-    });
-    body.appendChild(wrap);
-    if(graded) applySingleFeedback(q, wrap);
-  }
-
-  if(q.type==='multi'){
-    const hint = document.createElement('div'); hint.className='hint';
-    hint.textContent = 'Select exactly '+q.n+' choice(s).';
-    body.appendChild(hint);
-    const wrap = document.createElement('div'); wrap.className='choiceList';
-    if(!answers[q.q]) answers[q.q]=[];
-    q.opts.forEach(([k,v])=>{
-      const div = document.createElement('label'); div.className='choice';
-      div.innerHTML = '<input type="checkbox"><span class="txt"></span>';
-      div.querySelector('.txt').textContent = v;
-      const input = div.querySelector('input');
-      input.checked = answers[q.q].includes(k);
-      if(input.checked) div.classList.add('selected');
-      input.onchange = ()=>{
-        let arr = answers[q.q];
-        if(input.checked){ arr.push(k); } else { arr = arr.filter(x=>x!==k); }
-        answers[q.q]=arr;
-        updateProgress(); render();
-      };
-      wrap.appendChild(div);
-    });
-    body.appendChild(wrap);
-    if(graded) applyMultiFeedback(q, wrap);
-  }
-
-  const fb = document.getElementById('feedbackBox');
-  fb.className=''; fb.innerHTML='';
-  if(graded){
-    const correct = gradeResults[q.q];
-    fb.className = correct ? 'ok':'bad';
-    fb.textContent = correct ? '✔ Correct.' : '✘ Not quite — the correct answer is highlighted above.';
-  }
-
-  document.getElementById('prevBtn').disabled = current===0;
-  document.getElementById('nextBtn').textContent = current===TOTAL-1 ? 'Finish ▸' : 'Next ▸';
-  updateProgress();
+ const q=shownQ(),r=rec(q);$('qCounter').textContent=`Question ${q.q} / ${TOTAL}`;$('qTypeTag').textContent=typeLabel(q.type);$('qStem').textContent=q.stem;
+ const code=$('qCode');code.style.display=q.code?'block':'none';if(q.code)code.textContent=q.code;
+ const flag=$('qFlag');flag.style.display=q.flag?'block':'none';if(q.flag)flag.textContent='⚠ '+q.flag;
+ const body=$('qBody');body.innerHTML='';
+ if(q.type==='single'||q.type==='multi')renderChoices(q,r,body);
+ else renderEssay(q,r,body);
+ renderFeedback(q,r);
+ $('prevBtn').disabled=current===0;$('nextBtn').textContent=current===TOTAL-1?'View Results ▸':'Next ▸';
+ $('submitBtn').textContent=q.type==='essay'?'Review Response':'Submit Answer';$('submitBtn').style.display=r.submitted?'none':'inline-block';
+ $('tryAgainBtn').style.display=r.submitted&&r.correct===false?'inline-block':'none';updateProgress();save();
 }
-
-function applySingleFeedback(q, wrap){
-  const labels = wrap.querySelectorAll('.choice');
-  labels.forEach((div,i)=>{
-    const k = q.opts[i][0];
-    div.querySelector('input').disabled = true;
-    if(k===q.ans) div.classList.add('showCorrect');
-    else if(answers[q.q]===k) div.classList.add('showWrong');
-  });
+function renderChoices(q,r,body){
+ if(q.type==='multi'){const hint=document.createElement('div');hint.className='hint';hint.textContent=`Select exactly ${q.n} choice(s).`;body.appendChild(hint);}
+ const wrap=document.createElement('div');wrap.className='choiceList';optsFor(q).forEach(([k,v])=>{const label=document.createElement('label');label.className='choice';const input=document.createElement('input');input.type=q.type==='single'?'radio':'checkbox';input.name='q'+q.q;input.checked=q.type==='single'?r.value===k:r.value.includes(k);input.disabled=r.submitted;const txt=document.createElement('span');txt.className='txt';txt.textContent=v;label.append(input,txt);if(input.checked)label.classList.add('selected');if(r.submitted){if(q.type==='single'&&k===q.ans||q.type==='multi'&&q.ans.includes(k))label.classList.add('showCorrect');else if(input.checked)label.classList.add('showWrong');}input.onchange=()=>{if(q.type==='single')r.value=k;else r.value=input.checked?[...r.value,k]:r.value.filter(x=>x!==k);save();render();};wrap.appendChild(label);});body.appendChild(wrap);
 }
-function applyMultiFeedback(q, wrap){
-  const labels = wrap.querySelectorAll('.choice');
-  labels.forEach((div,i)=>{
-    const k = q.opts[i][0];
-    div.querySelector('input').disabled = true;
-    const chosen = answers[q.q].includes(k);
-    if(q.ans.includes(k)) div.classList.add('showCorrect');
-    else if(chosen) div.classList.add('showWrong');
-  });
-}
-
-document.getElementById('prevBtn').onclick = ()=>{ if(current>0){ current--; render(); } };
-document.getElementById('nextBtn').onclick = ()=>{
-  if(current<TOTAL-1){ current++; render(); }
-  else { gradeQuiz(); }
-};
-document.getElementById('finishBtn').onclick = gradeQuiz;
-
-function gradeQuestion(q){
-  const a = answers[q.q];
-  if(q.type==='single') return a===q.ans;
-  if(q.type==='multi'){
-    if(!a || a.length!==q.ans.length) return false;
-    const s1=[...a].sort().join(','); const s2=[...q.ans].sort().join(',');
-    return s1===s2;
-  }
-  return false;
-}
-
-function gradeQuiz(){
-  graded = true;
-  let correctCount = 0;
-  Q.forEach(q=>{
-    const ok = gradeQuestion(q);
-    gradeResults[q.q]=ok;
-    if(ok) correctCount++;
-  });
-  showResults(correctCount);
-}
-
-function showResults(correctCount){
-  document.getElementById('quizScreen').style.display='none';
-  document.getElementById('resultsScreen').style.display='block';
-  document.getElementById('sidebar').style.display='none';
-  const pct = Math.round(correctCount/TOTAL*100);
-  document.getElementById('scoreBig').textContent = pct+'%';
-  document.getElementById('scoreSub').textContent = correctCount+' of '+TOTAL+' correct';
-  const grid = document.getElementById('resultsGrid');
-  grid.innerHTML='';
-  Q.forEach(q=>{
-    const box = document.createElement('div');
-    box.className = 'rBox ' + (gradeResults[q.q] ? 'correct':'incorrect');
-    box.textContent = q.q;
-    box.onclick = ()=>{ jumpToReview(q.q-1); };
-    grid.appendChild(box);
-  });
-}
-
-function jumpToReview(idx){
-  document.getElementById('resultsScreen').style.display='none';
-  document.getElementById('quizScreen').style.display='block';
-  document.getElementById('sidebar').style.display='flex';
-  current = idx;
-  render();
-}
-
-document.getElementById('reviewWrongBtn').onclick = ()=>{
-  const firstWrong = Q.findIndex(q=>!gradeResults[q.q]);
-  jumpToReview(firstWrong===-1?0:firstWrong);
-};
-document.getElementById('retakeBtn').onclick = ()=>{
-  answers = {}; graded=false; gradeResults={}; current=0;
-  document.getElementById('resultsScreen').style.display='none';
-  document.getElementById('quizScreen').style.display='block';
-  document.getElementById('sidebar').style.display='flex';
-  render();
-};
-
-loadQuiz(activeQuizId);
+function renderEssay(q,r,body){const ta=document.createElement('textarea');ta.className='essayBox';ta.placeholder='Write at least 200 words…';ta.value=r.value||'';ta.disabled=r.submitted;const wc=document.createElement('div');wc.className='wordCount';const count=()=>{const n=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;wc.textContent=`${n} words${n<200?' — minimum 200':' — requirement met'}`;};ta.oninput=()=>{r.value=ta.value;count();save();};body.append(ta,wc);count();if(q.rubric){const note=document.createElement('div');note.className='flagNote';note.textContent='Rubric: '+q.rubric;body.appendChild(note);}}
+function gradeQuestion(q,r){if(q.type==='single')return r.value===q.ans;if(q.type==='multi')return r.value.length===q.ans.length&&[...r.value].sort().join(',')===[...q.ans].sort().join(',');return null;}
+function renderFeedback(q,r){const fb=$('feedbackBox');fb.className='';fb.innerHTML='';if(!r.submitted)return;if(q.type==='essay'){fb.className='review';fb.innerHTML='<strong>Model answer for self-review</strong><span class="modelAnswer"></span>';fb.querySelector('.modelAnswer').textContent=q.modelAnswer;return;}fb.className=r.correct?'ok':'bad';fb.innerHTML=r.correct?'✔ Correct.':'✘ Not quite — the correct answer is highlighted.';const exp=document.createElement('span');exp.className='explanation';exp.textContent=q.explanation||correctText(q);fb.appendChild(exp);}
+function correctText(q){const keys=Array.isArray(q.ans)?q.ans:[q.ans];return 'Correct answer: '+keys.map(k=>q.opts.find(x=>x[0]===k)[1]).join('; ')+'.';}
+function submitCurrent(){const q=shownQ(),r=rec(q);if(!isAnswered(q)){alert(q.type==='essay'?'Write a response before reviewing the model answer.':'Choose an answer first.');return;}if(q.type==='multi'&&r.value.length!==q.n){alert(`Select exactly ${q.n} choices.`);return;}r.submitted=true;r.attempts++;r.correct=gradeQuestion(q,r);save();render();}
+$('submitBtn').onclick=submitCurrent;
+$('tryAgainBtn').onclick=()=>{const q=shownQ(),r=rec(q);r.value=q.type==='multi'?[]:'';r.submitted=false;r.correct=null;save();render();};
+$('prevBtn').onclick=()=>{if(current>0){current--;render();}};
+$('nextBtn').onclick=()=>{if(current<TOTAL-1){current++;render();}else showResults();};
+$('finishBtn').onclick=showResults;
+function showResults(){const objective=Q.filter(q=>q.type!=='essay'),correct=objective.filter(q=>records[q.q]?.correct===true).length,pct=Math.round(correct/objective.length*100);$('quizScreen').style.display='none';$('resultsScreen').style.display='block';$('sidebar').style.display='none';$('scoreBig').textContent=pct+'%';const essay=Q.find(q=>q.type==='essay');$('scoreSub').textContent=`${correct} of ${objective.length} objective questions correct${essay?' • essay '+(records[essay.q]?.submitted?'reviewed':'not reviewed'):''}`;const grid=$('resultsGrid');grid.innerHTML='';order.forEach((qi,i)=>{const q=Q[qi],r=records[q.q],box=document.createElement('div');box.className='rBox '+(q.type==='essay'?(r?.submitted?'correct':'incorrect'):(r?.correct?'correct':'incorrect'));box.textContent=q.q;box.onclick=()=>jumpToReview(i);grid.appendChild(box);});}
+function jumpToReview(i){$('resultsScreen').style.display='none';$('quizScreen').style.display='block';$('sidebar').style.display='flex';current=i;render();}
+$('reviewWrongBtn').onclick=()=>{const i=order.findIndex(qi=>Q[qi].type!=='essay'&&records[Q[qi].q]?.correct!==true);jumpToReview(i<0?0:i);};
+$('retakeBtn').onclick=()=>{localStorage.removeItem(stateKey());freshState();$('resultsScreen').style.display='none';$('quizScreen').style.display='block';$('sidebar').style.display='flex';buildNav();render();};
+loadQuiz(QUIZZES[activeQuizId]?activeQuizId:Object.keys(QUIZZES)[0]);
 </script>
 </body>
 </html>
